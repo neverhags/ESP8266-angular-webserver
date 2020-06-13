@@ -26,43 +26,17 @@
 ------------------------------------------------------------------------------*/
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <FS.h>
 
 ESP8266WebServer server;
-uint8_t pin_led = 16;
+uint8_t pin_led = BUILTIN_LED;
 char* ssid = "FamiliaGarcia";
 char* password = "iamneverhags";
 
-char webpage[] PROGMEM = R"=====(
-<html>
-<head>
-</head>
-<body>
-<p> LED Status: <span id="led-state">__</span> </p>
-<button onclick="myFunction()"> TOGGLE </button>
-</body>
-<script>
-function myFunction()
-{
-  console.log("button was clicked!");
-  var xhr = new XMLHttpRequest();
-  var url = "/ledstate";
-
-  xhr.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      document.getElementById("led-state").innerHTML = this.responseText;
-    }
-  };
-
-  xhr.open("GET", url, true);
-  xhr.send();
-};
-document.addEventListener('DOMContentLoaded', myFunction, false);
-</script>
-</html>
-)=====";
 
 void setup()
 {
+  SPIFFS.begin();
   pinMode(pin_led, OUTPUT);
   WiFi.begin(ssid,password);
   Serial.begin(115200);
@@ -75,14 +49,44 @@ void setup()
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
 
-  server.on("/",[](){server.send_P(200,"text/html", webpage);});
+  server.on("/", serveIndexFile);
+  server.on("/bundle.min.js", serveBundleFile);
+  server.on("/styles.css", serveStyleFile);
   server.on("/ledstate",getLEDState);
+  server.onNotFound(onError);
   server.begin();
 }
 
 void loop()
 {
   server.handleClient();
+}
+
+void serveIndexFile() {
+  Serial.println(server.arg("plain"));
+  File file = SPIFFS.open("/index.html","r");
+  server.streamFile(file, "text/html");
+  file.close();
+}
+
+
+void serveBundleFile() {
+  Serial.println(server.arg("plain"));
+  File file = SPIFFS.open("/bundle.min.js","r");
+  server.streamFile(file, "application/javascript");
+  file.close();
+}
+
+void serveStyleFile() {
+  Serial.println(server.arg("plain"));
+  File file = SPIFFS.open("/styles.css","r");
+  server.streamFile(file, "text/css");
+  file.close();
+}
+
+void onError() {
+  Serial.println(server.arg("plain"));
+  server.send_P(404,"text/html", "Ha Ocurrido un error 404");
 }
 
 void toggleLED()
@@ -93,6 +97,6 @@ void toggleLED()
 void getLEDState()
 {
   toggleLED();
-  String led_state = digitalRead(pin_led) ? "ON" : "OFF";
+  String led_state = !digitalRead(pin_led) ? "ON" : "OFF";
   server.send(200,"text/plain", led_state);
 }
