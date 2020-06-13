@@ -52,7 +52,6 @@ void setup()
   server.on("/", serveIndexFile);
   server.on("/bundle.min.js", serveBundleFile);
   server.on("/styles.css", serveStyleFile);
-  server.on("/ledstate",getLEDState);
   server.onNotFound(onError);
   server.begin();
 }
@@ -67,7 +66,6 @@ void serveIndexFile() {
   server.streamFile(file, "text/html");
   file.close();
 }
-
 
 void serveBundleFile() {
   Serial.println(server.arg("plain"));
