@@ -1,4 +1,4 @@
-# ESP8266 Angular server
+# ESP8266 Angular 9 server
 
 `note: you need to setup the arduino IDE to use the ESP8266 board and upload files to SPIFFS tools`
 
