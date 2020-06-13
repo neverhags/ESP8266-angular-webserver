@@ -30,8 +30,8 @@
 
 ESP8266WebServer server;
 uint8_t pin_led = BUILTIN_LED;
-char* ssid = "FamiliaGarcia";
-char* password = "iamneverhags";
+char* ssid = "YOUR_WIFI_SSID";
+char* password = "YOUR_WIFI_PASSWORD";
 
 
 void setup()
@@ -57,8 +57,7 @@ void setup()
   server.begin();
 }
 
-void loop()
-{
+void loop() {
   server.handleClient();
 }
 
@@ -86,17 +85,6 @@ void serveStyleFile() {
 
 void onError() {
   Serial.println(server.arg("plain"));
-  server.send_P(404,"text/html", "Ha Ocurrido un error 404");
+  server.send_P(404,"text/html", "Error 404");
 }
 
-void toggleLED()
-{
-  digitalWrite(pin_led,!digitalRead(pin_led));
-}
-
-void getLEDState()
-{
-  toggleLED();
-  String led_state = !digitalRead(pin_led) ? "ON" : "OFF";
-  server.send(200,"text/plain", led_state);
-}
