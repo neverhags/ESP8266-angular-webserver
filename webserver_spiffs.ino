@@ -4,6 +4,7 @@
   Platforms: ESP8266
   Language: C++/Arduino
   File: webserver_html_js.ino
+  ModifiedBy: neverhags
   ------------------------------------------------------------------------------
   Description: 
   Code for YouTube video demonstrating how to use JavaScript in HTML weppages
@@ -29,7 +30,6 @@
 #include <FS.h>
 
 ESP8266WebServer server;
-uint8_t pin_led = BUILTIN_LED;
 char* ssid = "YOUR_WIFI_SSID";
 char* password = "YOUR_WIFI_PASSWORD";
 
@@ -37,7 +37,6 @@ char* password = "YOUR_WIFI_PASSWORD";
 void setup()
 {
   SPIFFS.begin();
-  pinMode(pin_led, OUTPUT);
   WiFi.begin(ssid,password);
   Serial.begin(115200);
   while(WiFi.status()!=WL_CONNECTED)
@@ -52,6 +51,7 @@ void setup()
   server.on("/", serveIndexFile);
   server.on("/bundle.min.js", serveBundleFile);
   server.on("/styles.css", serveStyleFile);
+  server.on("/favicon.ico", serveIconFile);
   server.onNotFound(onError);
   server.begin();
 }
@@ -61,23 +61,26 @@ void loop() {
 }
 
 void serveIndexFile() {
-  Serial.println(server.arg("plain"));
   File file = SPIFFS.open("/index.html","r");
   server.streamFile(file, "text/html");
   file.close();
 }
 
 void serveBundleFile() {
-  Serial.println(server.arg("plain"));
   File file = SPIFFS.open("/bundle.min.js","r");
   server.streamFile(file, "application/javascript");
   file.close();
 }
 
 void serveStyleFile() {
-  Serial.println(server.arg("plain"));
   File file = SPIFFS.open("/styles.css","r");
   server.streamFile(file, "text/css");
+  file.close();
+}
+
+void serveIconFile() {
+  File file = SPIFFS.open("/favicon.ico","r");
+  server.streamFile(file, "image/x-icon");
   file.close();
 }
 
@@ -85,4 +88,3 @@ void onError() {
   Serial.println(server.arg("plain"));
   server.send_P(404,"text/html", "Error 404");
 }
-
